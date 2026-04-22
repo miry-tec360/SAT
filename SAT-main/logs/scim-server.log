@@ -958,3 +958,333 @@ Help: https://docs.oracle.com/error-help/db/ora-00904/
 
 2026-04-22 13:53:05,185 | INFO | ORACLE_CLIENT_INIT | thick_mode=false
 2026-04-22 13:53:05,194 | INFO | APP_START | host=0.0.0.0 | port=6000 | base_url=http://10.70.255.115:6000/scim/v2
+2026-04-22 16:16:51,330 | INFO | ORACLE_CLIENT_INIT | thick_mode=false
+2026-04-22 16:16:51,353 | INFO | APP_START | host=0.0.0.0 | port=6000 | base_url=http://10.70.255.115:6000/scim/v2
+2026-04-22 16:16:52,265 | INFO | ORACLE_CLIENT_INIT | thick_mode=false
+2026-04-22 16:16:52,278 | INFO | APP_START | host=0.0.0.0 | port=6000 | base_url=http://10.70.255.115:6000/scim/v2
+2026-04-22 16:17:15,011 | INFO | REQUEST_IN | request_id=req-1776889035009 | method=GET | path=/scim/v2/ResourceTypes | url=http://10.70.255.115:6000/scim/v2/ResourceTypes?startIndex=1&count=200 | remote_addr=10.70.255.115 | params={"startIndex": "1", "count": "200"} | headers={"Accept": "application/scim+json", "Accept-Charset": "utf-8", "Content-Type": "application/json; charset=utf-8", "User-Agent": "Okta OPP Agent - 3.1.0", "Authorization": "***MASKED***", "Host": "10.70.255.115:6000", "Connection": "Keep-Alive", "Accept-Encoding": "gzip,deflate"} | body=null
+2026-04-22 16:17:15,018 | INFO | RESPONSE_OUT | request_id=req-1776889035009 | status=200 | duration_ms=7.23 | headers={"Content-Type": "application/json", "Content-Length": "833"} | body={
+  "Resources": [
+    {
+      "description": "SAT users",
+      "endpoint": "/Users",
+      "id": "User",
+      "name": "User",
+      "schema": "urn:ietf:params:scim:schemas:core:2.0:User",
+      "schemaExtensions": [
+        {
+          "required": false,
+          "schema": "urn:okta:sat:1.0:user:custom"
+        }
+      ],
+      "schemas": [
+        "urn:ietf:params:scim:schemas:core:2.0:ResourceType"
+      ]
+    },
+    {
+      "description": "SAT role catalog",
+      "endpoint": "/Roles",
+      "id": "Role",
+      "name": "Role",
+      "schema": "urn:okta:scim:schemas:core:1.0:Role",
+      "schemas": [
+        "urn:ietf:params:scim:schemas:core:2.0:ResourceType"
+      ]
+    }
+  ],
+  "itemsPerPage": 2,
+  "schemas": [
+    "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+  ],
+  "startIndex": 1,
+  "totalResults": 2
+}
+
+2026-04-22 16:24:11,888 | INFO | ORACLE_CLIENT_INIT | thick_mode=false
+2026-04-22 16:24:11,914 | INFO | APP_START | host=0.0.0.0 | port=6000 | base_url=http://10.70.255.115:6000/scim/v2
+2026-04-22 16:24:13,045 | INFO | ORACLE_CLIENT_INIT | thick_mode=false
+2026-04-22 16:24:13,065 | INFO | APP_START | host=0.0.0.0 | port=6000 | base_url=http://10.70.255.115:6000/scim/v2
+2026-04-22 16:29:35,547 | INFO | REQUEST_IN | request_id=req-1776889775547 | method=GET | path=/scim/v2/ResourceTypes | url=http://10.70.255.115:6000/scim/v2/ResourceTypes?startIndex=1&count=200 | remote_addr=10.70.255.115 | params={"startIndex": "1", "count": "200"} | headers={"Accept": "application/scim+json", "Accept-Charset": "utf-8", "Content-Type": "application/json; charset=utf-8", "User-Agent": "Okta OPP Agent - 3.1.0", "Authorization": "***MASKED***", "Host": "10.70.255.115:6000", "Connection": "Keep-Alive", "Accept-Encoding": "gzip,deflate"} | body=null
+2026-04-22 16:29:35,553 | INFO | RESPONSE_OUT | request_id=req-1776889775547 | status=200 | duration_ms=6.52 | headers={"Content-Type": "application/json", "Content-Length": "833"} | body={
+  "Resources": [
+    {
+      "description": "SAT users",
+      "endpoint": "/Users",
+      "id": "User",
+      "name": "User",
+      "schema": "urn:ietf:params:scim:schemas:core:2.0:User",
+      "schemaExtensions": [
+        {
+          "required": false,
+          "schema": "urn:okta:sat:1.0:user:custom"
+        }
+      ],
+      "schemas": [
+        "urn:ietf:params:scim:schemas:core:2.0:ResourceType"
+      ]
+    },
+    {
+      "description": "SAT role catalog",
+      "endpoint": "/Roles",
+      "id": "Role",
+      "name": "Role",
+      "schema": "urn:okta:scim:schemas:core:1.0:Role",
+      "schemas": [
+        "urn:ietf:params:scim:schemas:core:2.0:ResourceType"
+      ]
+    }
+  ],
+  "itemsPerPage": 2,
+  "schemas": [
+    "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+  ],
+  "startIndex": 1,
+  "totalResults": 2
+}
+
+2026-04-22 16:31:17,057 | INFO | REQUEST_IN | request_id=req-1776889877057 | method=GET | path=/scim/v2/Users | url=http://10.70.255.115:6000/scim/v2/Users?filter=userName%20eq%20"miriam.avendano@tec360cloud.com"&startIndex=1&count=200 | remote_addr=10.70.255.115 | params={"filter": "userName eq \"miriam.avendano@tec360cloud.com\"", "startIndex": "1", "count": "200"} | headers={"Accept": "application/scim+json", "Accept-Charset": "utf-8", "Content-Type": "application/json; charset=utf-8", "User-Agent": "Okta OPP Agent - 3.1.0", "Authorization": "***MASKED***", "Host": "10.70.255.115:6000", "Connection": "Keep-Alive", "Accept-Encoding": "gzip,deflate"} | body=null
+2026-04-22 16:31:17,060 | INFO | SQL_EXECUTE | sql=SELECT COUNT(1) AS TOTAL FROM ( SELECT u.USUARIO FROM COMSATCLPR.SGDT947 u WHERE u.USUARIO = :filter_value ) | binds={"filter_value": "miriam.avendano@tec360cloud.com"}
+2026-04-22 16:31:17,063 | INFO | ORACLE_CONNECT | dsn=10.70.255.115:1521/ORCLPDB1 | user=COMSATCLPR
+2026-04-22 16:31:17,384 | INFO | SQL_EXECUTE | sql=SELECT * FROM ( SELECT q.*, ROW_NUMBER() OVER (ORDER BY q.USUARIO) AS RN FROM ( SELECT u.USUARIO, u.NOMBREUSU, u.APELL1USU, u.APELL2USU, u.FECBAJA FROM COMSATCLPR.SGDT947 u WHERE u.USUARIO = :filter_value ) q ) WHERE RN > :offset AND RN <= :limit | binds={"filter_value": "miriam.avendano@tec360cloud.com", "offset": 0, "limit": 200}
+2026-04-22 16:31:17,384 | INFO | ORACLE_CONNECT | dsn=10.70.255.115:1521/ORCLPDB1 | user=COMSATCLPR
+2026-04-22 16:31:17,531 | INFO | SCIM_LIST_RESPONSE | total=0 | startIndex=1 | requestedCount=200 | returned=0 | body={"schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"], "totalResults": 0, "startIndex": 1, "itemsPerPage": 0, "Resources": []}
+2026-04-22 16:31:17,534 | INFO | RESPONSE_OUT | request_id=req-1776889877057 | status=200 | duration_ms=476.78 | headers={"Content-Type": "application/json", "Content-Length": "160"} | body={
+  "Resources": [],
+  "itemsPerPage": 0,
+  "schemas": [
+    "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+  ],
+  "startIndex": 1,
+  "totalResults": 0
+}
+
+2026-04-22 16:31:18,186 | INFO | REQUEST_IN | request_id=req-1776889878186 | method=GET | path=/scim/v2/ResourceTypes | url=http://10.70.255.115:6000/scim/v2/ResourceTypes?startIndex=1&count=200 | remote_addr=10.70.255.115 | params={"startIndex": "1", "count": "200"} | headers={"Accept": "application/scim+json", "Accept-Charset": "utf-8", "Content-Type": "application/json; charset=utf-8", "User-Agent": "Okta OPP Agent - 3.1.0", "Authorization": "***MASKED***", "Host": "10.70.255.115:6000", "Connection": "Keep-Alive", "Accept-Encoding": "gzip,deflate"} | body=null
+2026-04-22 16:31:18,190 | INFO | RESPONSE_OUT | request_id=req-1776889878186 | status=200 | duration_ms=3.65 | headers={"Content-Type": "application/json", "Content-Length": "833"} | body={
+  "Resources": [
+    {
+      "description": "SAT users",
+      "endpoint": "/Users",
+      "id": "User",
+      "name": "User",
+      "schema": "urn:ietf:params:scim:schemas:core:2.0:User",
+      "schemaExtensions": [
+        {
+          "required": false,
+          "schema": "urn:okta:sat:1.0:user:custom"
+        }
+      ],
+      "schemas": [
+        "urn:ietf:params:scim:schemas:core:2.0:ResourceType"
+      ]
+    },
+    {
+      "description": "SAT role catalog",
+      "endpoint": "/Roles",
+      "id": "Role",
+      "name": "Role",
+      "schema": "urn:okta:scim:schemas:core:1.0:Role",
+      "schemas": [
+        "urn:ietf:params:scim:schemas:core:2.0:ResourceType"
+      ]
+    }
+  ],
+  "itemsPerPage": 2,
+  "schemas": [
+    "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+  ],
+  "startIndex": 1,
+  "totalResults": 2
+}
+
+2026-04-22 16:31:18,731 | INFO | REQUEST_IN | request_id=req-1776889878728 | method=POST | path=/scim/v2/Users | url=http://10.70.255.115:6000/scim/v2/Users | remote_addr=10.70.255.115 | params={} | headers={"Accept": "application/scim+json", "Accept-Charset": "utf-8", "Content-Type": "application/json; charset=utf-8", "User-Agent": "Okta OPP Agent - 3.1.0", "Authorization": "***MASKED***", "Content-Length": "408", "Host": "10.70.255.115:6000", "Connection": "Keep-Alive", "Accept-Encoding": "gzip,deflate"} | body={"schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"], "externalId": "00uwmulajk6EDzw0M1d7", "userName": "miriam.avendano@tec360cloud.com", "name": {"formatted": "Miriam Avendaño TEC360"}, "active": true, "password": "seaR05Gr", "emails": [{"value": "miriam.avendano@tec360cloud.com", "type": "primary", "primary": true}], "entitlements": [], "roles": [{"value": "PT", "display": "PARAMETRIA", "type": "OKTA_APP", "primary": true}]}
+2026-04-22 16:31:18,733 | INFO | PAYLOAD_NORMALIZED | input={"schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"], "externalId": "00uwmulajk6EDzw0M1d7", "userName": "miriam.avendano@tec360cloud.com", "name": {"formatted": "Miriam Avendaño TEC360"}, "active": true, "password": "seaR05Gr", "emails": [{"value": "miriam.avendano@tec360cloud.com", "type": "primary", "primary": true}], "entitlements": [], "roles": [{"value": "PT", "display": "PARAMETRIA", "type": "OKTA_APP", "primary": true}]} | normalized={"userName": "miriam.avendano@tec360cloud.com", "externalId": "00uwmulajk6EDzw0M1d7", "firstName": "", "lastName": "", "title": "", "active": true, "custom": {"rut": "", "dv": "", "tipoUsuario": "", "apellidoMaterno": "", "codigoPerfil": "", "perfilNombre": "", "userstatus": ""}}
+2026-04-22 16:31:18,735 | WARNING | ERROR_RESPONSE | status=400 | detail=El atributo firstName es obligatorio para SAT.
+2026-04-22 16:31:18,736 | INFO | RESPONSE_OUT | request_id=req-1776889878728 | status=400 | duration_ms=7.46 | headers={"Content-Type": "application/json", "Content-Length": "154"} | body={
+  "detail": "El atributo firstName es obligatorio para SAT.",
+  "schemas": [
+    "urn:ietf:params:scim:api:messages:2.0:Error"
+  ],
+  "status": "400"
+}
+
+2026-04-22 16:32:01,684 | INFO | REQUEST_IN | request_id=req-1776889921682 | method=GET | path=/scim/v2/ResourceTypes | url=http://10.70.255.115:6000/scim/v2/ResourceTypes?startIndex=1&count=200 | remote_addr=10.70.255.115 | params={"startIndex": "1", "count": "200"} | headers={"Accept": "application/scim+json", "Accept-Charset": "utf-8", "Content-Type": "application/json; charset=utf-8", "User-Agent": "Okta OPP Agent - 3.1.0", "Authorization": "***MASKED***", "Host": "10.70.255.115:6000", "Connection": "Keep-Alive", "Accept-Encoding": "gzip,deflate"} | body=null
+2026-04-22 16:32:01,687 | INFO | RESPONSE_OUT | request_id=req-1776889921682 | status=200 | duration_ms=4.66 | headers={"Content-Type": "application/json", "Content-Length": "833"} | body={
+  "Resources": [
+    {
+      "description": "SAT users",
+      "endpoint": "/Users",
+      "id": "User",
+      "name": "User",
+      "schema": "urn:ietf:params:scim:schemas:core:2.0:User",
+      "schemaExtensions": [
+        {
+          "required": false,
+          "schema": "urn:okta:sat:1.0:user:custom"
+        }
+      ],
+      "schemas": [
+        "urn:ietf:params:scim:schemas:core:2.0:ResourceType"
+      ]
+    },
+    {
+      "description": "SAT role catalog",
+      "endpoint": "/Roles",
+      "id": "Role",
+      "name": "Role",
+      "schema": "urn:okta:scim:schemas:core:1.0:Role",
+      "schemas": [
+        "urn:ietf:params:scim:schemas:core:2.0:ResourceType"
+      ]
+    }
+  ],
+  "itemsPerPage": 2,
+  "schemas": [
+    "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+  ],
+  "startIndex": 1,
+  "totalResults": 2
+}
+
+2026-04-22 16:32:31,959 | INFO | REQUEST_IN | request_id=req-1776889951958 | method=GET | path=/scim/v2/Users | url=http://10.70.255.115:6000/scim/v2/Users?filter=userName%20eq%20"miriam.avendano@tec360cloud.com"&startIndex=1&count=200 | remote_addr=10.70.255.115 | params={"filter": "userName eq \"miriam.avendano@tec360cloud.com\"", "startIndex": "1", "count": "200"} | headers={"Accept": "application/scim+json", "Accept-Charset": "utf-8", "Content-Type": "application/json; charset=utf-8", "User-Agent": "Okta OPP Agent - 3.1.0", "Authorization": "***MASKED***", "Host": "10.70.255.115:6000", "Connection": "Keep-Alive", "Accept-Encoding": "gzip,deflate"} | body=null
+2026-04-22 16:32:31,963 | INFO | SQL_EXECUTE | sql=SELECT COUNT(1) AS TOTAL FROM ( SELECT u.USUARIO FROM COMSATCLPR.SGDT947 u WHERE u.USUARIO = :filter_value ) | binds={"filter_value": "miriam.avendano@tec360cloud.com"}
+2026-04-22 16:32:31,969 | INFO | ORACLE_CONNECT | dsn=10.70.255.115:1521/ORCLPDB1 | user=COMSATCLPR
+2026-04-22 16:32:32,137 | INFO | SQL_EXECUTE | sql=SELECT * FROM ( SELECT q.*, ROW_NUMBER() OVER (ORDER BY q.USUARIO) AS RN FROM ( SELECT u.USUARIO, u.NOMBREUSU, u.APELL1USU, u.APELL2USU, u.FECBAJA FROM COMSATCLPR.SGDT947 u WHERE u.USUARIO = :filter_value ) q ) WHERE RN > :offset AND RN <= :limit | binds={"filter_value": "miriam.avendano@tec360cloud.com", "offset": 0, "limit": 200}
+2026-04-22 16:32:32,137 | INFO | ORACLE_CONNECT | dsn=10.70.255.115:1521/ORCLPDB1 | user=COMSATCLPR
+2026-04-22 16:32:32,323 | INFO | SCIM_LIST_RESPONSE | total=0 | startIndex=1 | requestedCount=200 | returned=0 | body={"schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"], "totalResults": 0, "startIndex": 1, "itemsPerPage": 0, "Resources": []}
+2026-04-22 16:32:32,325 | INFO | RESPONSE_OUT | request_id=req-1776889951958 | status=200 | duration_ms=367.06 | headers={"Content-Type": "application/json", "Content-Length": "160"} | body={
+  "Resources": [],
+  "itemsPerPage": 0,
+  "schemas": [
+    "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+  ],
+  "startIndex": 1,
+  "totalResults": 0
+}
+
+2026-04-22 16:32:32,759 | INFO | REQUEST_IN | request_id=req-1776889952759 | method=GET | path=/scim/v2/ResourceTypes | url=http://10.70.255.115:6000/scim/v2/ResourceTypes?startIndex=1&count=200 | remote_addr=10.70.255.115 | params={"startIndex": "1", "count": "200"} | headers={"Accept": "application/scim+json", "Accept-Charset": "utf-8", "Content-Type": "application/json; charset=utf-8", "User-Agent": "Okta OPP Agent - 3.1.0", "Authorization": "***MASKED***", "Host": "10.70.255.115:6000", "Connection": "Keep-Alive", "Accept-Encoding": "gzip,deflate"} | body=null
+2026-04-22 16:32:32,761 | INFO | RESPONSE_OUT | request_id=req-1776889952759 | status=200 | duration_ms=1.86 | headers={"Content-Type": "application/json", "Content-Length": "833"} | body={
+  "Resources": [
+    {
+      "description": "SAT users",
+      "endpoint": "/Users",
+      "id": "User",
+      "name": "User",
+      "schema": "urn:ietf:params:scim:schemas:core:2.0:User",
+      "schemaExtensions": [
+        {
+          "required": false,
+          "schema": "urn:okta:sat:1.0:user:custom"
+        }
+      ],
+      "schemas": [
+        "urn:ietf:params:scim:schemas:core:2.0:ResourceType"
+      ]
+    },
+    {
+      "description": "SAT role catalog",
+      "endpoint": "/Roles",
+      "id": "Role",
+      "name": "Role",
+      "schema": "urn:okta:scim:schemas:core:1.0:Role",
+      "schemas": [
+        "urn:ietf:params:scim:schemas:core:2.0:ResourceType"
+      ]
+    }
+  ],
+  "itemsPerPage": 2,
+  "schemas": [
+    "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+  ],
+  "startIndex": 1,
+  "totalResults": 2
+}
+
+2026-04-22 16:32:33,374 | INFO | REQUEST_IN | request_id=req-1776889953373 | method=POST | path=/scim/v2/Users | url=http://10.70.255.115:6000/scim/v2/Users | remote_addr=10.70.255.115 | params={} | headers={"Accept": "application/scim+json", "Accept-Charset": "utf-8", "Content-Type": "application/json; charset=utf-8", "User-Agent": "Okta OPP Agent - 3.1.0", "Authorization": "***MASKED***", "Content-Length": "462", "Host": "10.70.255.115:6000", "Connection": "Keep-Alive", "Accept-Encoding": "gzip,deflate"} | body={"schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"], "externalId": "00uwmulajk6EDzw0M1d7", "userName": "miriam.avendano@tec360cloud.com", "name": {"formatted": "Miriam Avendaño TEC360", "familyName": "test", "givenName": "test"}, "title": "test", "active": true, "password": "kes5LN6s", "emails": [{"value": "miriam.avendano@tec360cloud.com", "type": "primary", "primary": true}], "entitlements": [], "roles": [{"value": "PT", "display": "PARAMETRIA", "type": "OKTA_APP", "primary": true}]}
+2026-04-22 16:32:33,375 | INFO | PAYLOAD_NORMALIZED | input={"schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"], "externalId": "00uwmulajk6EDzw0M1d7", "userName": "miriam.avendano@tec360cloud.com", "name": {"formatted": "Miriam Avendaño TEC360", "familyName": "test", "givenName": "test"}, "title": "test", "active": true, "password": "kes5LN6s", "emails": [{"value": "miriam.avendano@tec360cloud.com", "type": "primary", "primary": true}], "entitlements": [], "roles": [{"value": "PT", "display": "PARAMETRIA", "type": "OKTA_APP", "primary": true}]} | normalized={"userName": "miriam.avendano@tec360cloud.com", "externalId": "00uwmulajk6EDzw0M1d7", "firstName": "test", "lastName": "test", "title": "test", "active": true, "custom": {"rut": "", "dv": "", "tipoUsuario": "", "apellidoMaterno": "", "codigoPerfil": "", "perfilNombre": "", "userstatus": ""}}
+2026-04-22 16:32:33,375 | INFO | SAT_UPSERT_START | usuario=00UWMULAJK6EDZW0M1D7 | first_name=TEST | apellido1=TEST | apellido2= | active=True | role_code=04 | title=test
+2026-04-22 16:32:33,375 | INFO | SQL_EXECUTE | sql=SELECT USUARIO, NOMBREUSU, APELL1USU, APELL2USU, FECBAJA FROM COMSATCLPR.SGDT947 WHERE USUARIO = :usuario | binds={"usuario": "00UWMULAJK6EDZW0M1D7"}
+2026-04-22 16:32:33,376 | INFO | ORACLE_CONNECT | dsn=10.70.255.115:1521/ORCLPDB1 | user=COMSATCLPR
+2026-04-22 16:32:33,533 | INFO | ORACLE_CONNECT | dsn=10.70.255.115:1521/ORCLPDB1 | user=COMSATCLPR
+2026-04-22 16:32:33,658 | INFO | SQL_EXECUTE | sql=INSERT INTO COMSATCLPR.SGDT947 ( USUARIO, CODPERFIL, NOMBREUSU, APELL1USU, APELL2USU, PASSWORDD, FECINICON, FECFINCON, INDCONADM, CONTADOR, NUMMAXCON, VIGCONUSU, NIVSEGUSU, CODIDIOMA, FECACTIVA, FECDESACT, FECALTA, FECBAJA, FECULTMOD, CENTTRA, OFICINA, VERPAN, CODENTUMO, CODOFIUMO, USUARIOUMO, CODTERMUMO, CONTCUR ) VALUES ( :usuario, '  ', :nombre, :apellido1, :apellido2, :passwordd, TO_CHAR(SYSDATE,'YYYY-MM-DD'), :fecfincon, 'N', 0, :nummaxcon, :vigconusu, :nivsegusu, :codidioma, TO_CHAR(SYSDATE,'YYYY-MM-DD'), :fecfincon, TO_CHAR(SYSDATE,'YYYY-MM-DD'), :fecbaja_activa, TO_CHAR(SYSDATE,'YYYY-MM-DD'), :centtra, :oficina, :verpan, :codentumo, :codofi, :usuarioumo, :codtermumo, TO_CHAR(SYSDATE,'YYYY-MM-DD-HH24.MI.SS') || '.0' || TO_CHAR(SYSDATE,'SSSSS') ) | binds={"usuario": "00UWMULAJK6EDZW0M1D7", "nombre": "TEST", "apellido1": "TEST", "apellido2": "", "passwordd": "668d66d64fd48db423c4bae74b553cdc50f0925e4e7212bba2543031a74d49ae", "fecfincon": "9999-12-31", "nummaxcon": 3, "vigconusu": 90, "nivsegusu": "0", "codidioma": "ES", "fecbaja_activa": "0001-01-01", "centtra": "", "oficina": "8888", "verpan": "N", "codentumo": "0015", "codofi": "0001", "usuarioumo": "SCIMSAT", "codtermumo": "88888888"}
+2026-04-22 16:32:33,697 | INFO | SQL_EXECUTE | sql=SELECT COUNT(1) AS TOTAL FROM COMSATCLPR.SGDT958 WHERE USUARIO = :usuario AND INSTALAC = :instalac | binds={"usuario": "00UWMULAJK6EDZW0M1D7", "instalac": "SAT"}
+2026-04-22 16:32:33,703 | INFO | SQL_EXECUTE | sql=INSERT INTO COMSATCLPR.SGDT958 ( USUARIO, INSTALAC, CODPERFIL, CODPERFILEXT, FECALTA, FECBAJA, CODENTUMO, CODOFIUMO, USUARIOUMO, CODTERMUMO, CONTCUR ) VALUES ( :usuario, :instalac, :codperfil, :codperfil_ext, TO_CHAR(SYSDATE,'YYYY-MM-DD'), :fecbaja, :codentumo, :codofi, :usuarioumo, :codtermumo, TO_CHAR(SYSDATE,'YYYY-MM-DD-HH24.MI.SS') || '.0' || TO_CHAR(SYSDATE,'SSSSS') ) | binds={"usuario": "00UWMULAJK6EDZW0M1D7", "instalac": "SAT", "codperfil": "04", "codperfil_ext": "E1", "fecbaja": "0001-01-01", "codentumo": "0015", "codofi": "0001", "usuarioumo": "SCIMSAT", "codtermumo": "88888888"}
+2026-04-22 16:32:33,718 | INFO | DB_COMMIT | action=UPSERT_SAT_USER | usuario=00UWMULAJK6EDZW0M1D7
+2026-04-22 16:32:33,720 | INFO | SQL_EXECUTE | sql=SELECT USUARIO, NOMBREUSU, APELL1USU, APELL2USU, FECBAJA FROM COMSATCLPR.SGDT947 WHERE USUARIO = :usuario | binds={"usuario": "00UWMULAJK6EDZW0M1D7"}
+2026-04-22 16:32:33,721 | INFO | ORACLE_CONNECT | dsn=10.70.255.115:1521/ORCLPDB1 | user=COMSATCLPR
+2026-04-22 16:32:33,858 | INFO | SQL_EXECUTE | sql=SELECT USUARIO, INSTALAC, CODPERFIL, CODPERFILEXT, FECALTA, FECBAJA FROM COMSATCLPR.SGDT958 WHERE USUARIO = :usuario AND INSTALAC = :instalac ORDER BY FECALTA DESC | binds={"usuario": "00UWMULAJK6EDZW0M1D7", "instalac": "SAT"}
+2026-04-22 16:32:33,859 | INFO | ORACLE_CONNECT | dsn=10.70.255.115:1521/ORCLPDB1 | user=COMSATCLPR
+2026-04-22 16:32:33,968 | INFO | RESPONSE_OUT | request_id=req-1776889953373 | status=201 | duration_ms=594.02 | headers={"Content-Type": "application/json", "Content-Length": "795"} | body={
+  "active": true,
+  "externalId": "00UWMULAJK6EDZW0M1D7",
+  "id": "00UWMULAJK6EDZW0M1D7",
+  "meta": {
+    "location": "http://10.70.255.115:6000/scim/v2/Users/00UWMULAJK6EDZW0M1D7",
+    "resourceType": "User"
+  },
+  "name": {
+    "familyName": "TEST",
+    "givenName": "TEST"
+  },
+  "roles": [
+    {
+      "display": "AUDITORIA",
+      "primary": true,
+      "type": "perfilNombre",
+      "value": "04"
+    }
+  ],
+  "schemas": [
+    "urn:ietf:params:scim:schemas:core:2.0:User",
+    "urn:okta:sat:1.0:user:custom"
+  ],
+  "title": "test",
+  "urn:okta:sat:1.0:user:custom": {
+    "apellidoMaterno": "",
+    "codigoPerfil": "04",
+    "dv": null,
+    "perfilNombre": "AUDITORIA",
+    "rut": "006017",
+    "tipoUsuario": null,
+    "userstatus": "activo"
+  },
+  "userName": "00UWMULAJK6EDZW0M1D7"
+}
+
+2026-04-22 16:33:35,584 | INFO | REQUEST_IN | request_id=req-1776890015584 | method=GET | path=/scim/v2/ResourceTypes | url=http://10.70.255.115:6000/scim/v2/ResourceTypes?startIndex=1&count=200 | remote_addr=10.70.255.115 | params={"startIndex": "1", "count": "200"} | headers={"Accept": "application/scim+json", "Accept-Charset": "utf-8", "Content-Type": "application/json; charset=utf-8", "User-Agent": "Okta OPP Agent - 3.1.0", "Authorization": "***MASKED***", "Host": "10.70.255.115:6000", "Connection": "Keep-Alive", "Accept-Encoding": "gzip,deflate"} | body=null
+2026-04-22 16:33:35,587 | INFO | RESPONSE_OUT | request_id=req-1776890015584 | status=200 | duration_ms=3.76 | headers={"Content-Type": "application/json", "Content-Length": "833"} | body={
+  "Resources": [
+    {
+      "description": "SAT users",
+      "endpoint": "/Users",
+      "id": "User",
+      "name": "User",
+      "schema": "urn:ietf:params:scim:schemas:core:2.0:User",
+      "schemaExtensions": [
+        {
+          "required": false,
+          "schema": "urn:okta:sat:1.0:user:custom"
+        }
+      ],
+      "schemas": [
+        "urn:ietf:params:scim:schemas:core:2.0:ResourceType"
+      ]
+    },
+    {
+      "description": "SAT role catalog",
+      "endpoint": "/Roles",
+      "id": "Role",
+      "name": "Role",
+      "schema": "urn:okta:scim:schemas:core:1.0:Role",
+      "schemas": [
+        "urn:ietf:params:scim:schemas:core:2.0:ResourceType"
+      ]
+    }
+  ],
+  "itemsPerPage": 2,
+  "schemas": [
+    "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+  ],
+  "startIndex": 1,
+  "totalResults": 2
+}
+

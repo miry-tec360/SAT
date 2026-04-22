@@ -84,14 +84,65 @@ def _error(message: str, status_code: int):
     return jsonify(payload), status_code
 
 
+def _extract_primary_role(payload: Dict[str, Any]) -> str:
+    roles = payload.get("roles") or []
+    if not roles:
+        return ""
+    primary = next((r for r in roles if r.get("primary") is True), None)
+    selected = primary or roles[0]
+    return str(selected.get("value") or "").strip()
+
+
+def _derive_names(payload: Dict[str, Any]) -> tuple:
+    """
+    Deriva firstName y lastName con fallbacks progresivos.
+    Según spec SAT:
+      firstName ? NOMBREUSU (nombre)
+      lastName  ? APELL1USU + APELL2USU (apellidos)
+    Okta a veces envía todo en name.formatted y givenName/familyName vacíos.
+    """
+    name = payload.get("name") or {}
+
+    first = str(name.get("givenName") or payload.get("firstName") or "").strip()
+    last  = str(name.get("familyName") or payload.get("lastName") or "").strip()
+
+    # Fallback: intentar desde name.formatted
+    if not first or not last:
+        formatted = str(name.get("formatted") or "").strip()
+        if formatted:
+            parts = formatted.split(" ", 1)
+            if not first:
+                first = parts[0]
+            if not last and len(parts) > 1:
+                last = parts[1]
+
+    # Fallback final: si aún no hay firstName, usar la parte antes del @ del userName
+    if not first:
+        username = str(payload.get("userName") or "").strip()
+        if username:
+            first = username.split("@")[0].upper()
+
+    # Si lastName sigue vacío, duplicar firstName para pasar validación de Okta
+    if not last:
+        last = first
+
+    return first.upper(), last.upper()
+
+
 def _extract_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
     extension = payload.get(Config.CUSTOM_SCHEMA) or {}
-    name = payload.get("name") or {}
+
+    first_name, last_name = _derive_names(payload)
+
+    role_from_roles = _extract_primary_role(payload)
+    role_from_schema = str(extension.get("codigoPerfil") or payload.get("codigoPerfil") or "").strip()
+    codigo_perfil = role_from_roles or role_from_schema
+
     data = {
         "userName": str(payload.get("userName") or "").strip(),
         "externalId": str(payload.get("externalId") or "").strip(),
-        "firstName": str(name.get("givenName") or payload.get("firstName") or "").strip(),
-        "lastName": str(name.get("familyName") or payload.get("lastName") or "").strip(),
+        "firstName": first_name,
+        "lastName": last_name,
         "title": str(payload.get("title") or "").strip(),
         "active": bool(payload.get("active", True)),
         "custom": {
@@ -99,12 +150,16 @@ def _extract_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
             "dv": str(extension.get("dv") or payload.get("dv") or "").strip(),
             "tipoUsuario": str(extension.get("tipoUsuario") or payload.get("tipoUsuario") or "").strip(),
             "apellidoMaterno": str(extension.get("apellidoMaterno") or payload.get("apellidoMaterno") or "").strip(),
-            "codigoPerfil": str(extension.get("codigoPerfil") or payload.get("codigoPerfil") or "").strip(),
+            "codigoPerfil": codigo_perfil,
             "perfilNombre": str(extension.get("perfilNombre") or payload.get("perfilNombre") or "").strip(),
             "userstatus": str(extension.get("userstatus") or payload.get("userstatus") or "").strip(),
         },
     }
-    LOGGER.info("PAYLOAD_NORMALIZED | input=%s | normalized=%s", safe_json(payload), safe_json(data))
+    LOGGER.info(
+        "PAYLOAD_NORMALIZED | input=%s | normalized=%s | role_source=%s",
+        safe_json(payload), safe_json(data),
+        "roles[]" if role_from_roles else "codigoPerfil",
+    )
     return data
 
 
