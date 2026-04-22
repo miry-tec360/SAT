@@ -1,4 +1,0 @@
-2026-04-16 18:36:17,783 | INFO | ORACLE_CLIENT_INIT | thick_mode=false
-2026-04-16 18:36:17,791 | INFO | APP_START | host=0.0.0.0 | port=6000 | base_url=http://192.168.1.9:6000/scim/v2
-2026-04-16 18:36:18,042 | INFO | ORACLE_CLIENT_INIT | thick_mode=false
-2026-04-16 18:36:18,050 | INFO | APP_START | host=0.0.0.0 | port=6000 | base_url=http://192.168.1.9:6000/scim/v2
