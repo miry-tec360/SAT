@@ -147,7 +147,7 @@ class SatOracleRepo:
 
         if filter_attr and filter_value:
             if filter_attr == "userName":
-                base_where = "WHERE q.USUARIO = :filter_value"
+                base_where = "WHERE u.USUARIO = :filter_value"
                 binds["filter_value"] = filter_value
             else:
                 raise ValueError(f"Unsupported filter for Users: {filter_attr}")
