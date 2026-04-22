@@ -94,19 +94,12 @@ def _extract_primary_role(payload: Dict[str, Any]) -> str:
 
 
 def _derive_names(payload: Dict[str, Any]) -> tuple:
-    """
-    Deriva firstName y lastName con fallbacks progresivos.
-    Según spec SAT:
-      firstName ? NOMBREUSU (nombre)
-      lastName  ? APELL1USU + APELL2USU (apellidos)
-    Okta a veces envía todo en name.formatted y givenName/familyName vacíos.
-    """
     name = payload.get("name") or {}
 
     first = str(name.get("givenName") or payload.get("firstName") or "").strip()
     last  = str(name.get("familyName") or payload.get("lastName") or "").strip()
 
-    # Fallback: intentar desde name.formatted
+    
     if not first or not last:
         formatted = str(name.get("formatted") or "").strip()
         if formatted:
@@ -116,13 +109,13 @@ def _derive_names(payload: Dict[str, Any]) -> tuple:
             if not last and len(parts) > 1:
                 last = parts[1]
 
-    # Fallback final: si aún no hay firstName, usar la parte antes del @ del userName
+    
     if not first:
         username = str(payload.get("userName") or "").strip()
         if username:
             first = username.split("@")[0].upper()
 
-    # Si lastName sigue vacío, duplicar firstName para pasar validación de Okta
+    
     if not last:
         last = first
 
