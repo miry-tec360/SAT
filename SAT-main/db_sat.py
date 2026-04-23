@@ -120,7 +120,7 @@ class SatOracleRepo:
         sql_947 = f"""
             SELECT USUARIO, NOMBREUSU, APELL1USU, APELL2USU, FECBAJA
             FROM {self.table_947}
-            WHERE USUARIO = :usuario
+            WHERE TRIM(USUARIO) = TRIM(:usuario)
         """
         row_947 = self._fetch_one(sql_947, {"usuario": usuario})
         if not row_947:
@@ -129,7 +129,7 @@ class SatOracleRepo:
         sql_958 = f"""
             SELECT USUARIO, INSTALAC, CODPERFIL, CODPERFILEXT, FECALTA, FECBAJA
             FROM {self.table_958}
-            WHERE USUARIO = :usuario
+            WHERE TRIM(USUARIO) = TRIM(:usuario)
               AND INSTALAC = :instalac
             ORDER BY FECALTA DESC
         """
@@ -147,7 +147,7 @@ class SatOracleRepo:
 
         if filter_attr and filter_value:
             if filter_attr == "userName":
-                base_where = "WHERE u.USUARIO = :filter_value"
+                base_where = "WHERE TRIM(u.USUARIO) = TRIM(:filter_value)"
                 binds["filter_value"] = filter_value
             else:
                 raise ValueError(f"Unsupported filter for Users: {filter_attr}")
@@ -183,7 +183,7 @@ class SatOracleRepo:
             sql_958 = f"""
                 SELECT USUARIO, INSTALAC, CODPERFIL, CODPERFILEXT, FECALTA, FECBAJA
                 FROM {self.table_958}
-                WHERE USUARIO = :usuario
+                WHERE TRIM(USUARIO) = TRIM(:usuario)
                   AND INSTALAC = :instalac
                 ORDER BY FECALTA DESC
             """
@@ -222,7 +222,7 @@ class SatOracleRepo:
             "nivsegusu": Config.SAT_DEFAULT_NIVSEGUSU,
             "codidioma": Config.SAT_DEFAULT_CODIDIOMA,
             "fecbaja_activa": Config.SAT_ACTIVE_FECBAJA,
-            "centtra": Config.SAT_DEFAULT_CENTTRA,
+            "centtra": "            ",  # CHAR(12) NOT NULL: 12 espacios
             "oficina": Config.SAT_DEFAULT_OFICINA,
             "verpan": Config.SAT_DEFAULT_VERPAN,
             "codentumo": Config.SAT_DEFAULT_CODENTUMO,
@@ -244,7 +244,7 @@ class SatOracleRepo:
                    CODTERMUMO = :codtermumo,
                    FECBAJA = :fecbaja,
                    CONTCUR = TO_CHAR(SYSDATE,'YYYY-MM-DD-HH24.MI.SS') || '.0' || TO_CHAR(SYSDATE,'SSSSS')
-             WHERE USUARIO = :usuario
+             WHERE TRIM(USUARIO) = TRIM(:usuario)
         """
         binds = {
             "usuario": usuario,
@@ -266,21 +266,17 @@ class SatOracleRepo:
                        FECULTMOD = TO_CHAR(SYSDATE,'YYYY-MM-DD'),
                        USUARIOUMO = :usuarioumo,
                        CONTCUR = TO_CHAR(SYSDATE,'YYYY-MM-DD-HH24.MI.SS') || '.0' || TO_CHAR(SYSDATE,'SSSSS')
-                 WHERE USUARIO = :usuario
+                 WHERE TRIM(USUARIO) = TRIM(:usuario)
             """
             baja_binds = {"usuario": usuario, "usuarioumo": Config.SAT_DEFAULT_USUARIOUMO}
             self._log_sql(sql_baja, baja_binds)
             cur.execute(sql_baja, baja_binds)
 
     def _ensure_958(self, cur, *, usuario: str, role_code: str, active: bool) -> None:
-        # Usar MERGE para evitar race conditions y problemas con CHAR padding en Oracle.
-        # PK de SGDT958 es (USUARIO + INSTALAC).
-        fecbaja = Config.SAT_ACTIVE_FECBAJA if active else "BAJA"
+        # MERGE evita ORA-00001 por PK (USUARIO+INSTALAC) y problemas de CHAR padding
         sql_merge = f"""
             MERGE INTO {self.table_958} tgt
-            USING (
-                SELECT :usuario AS USUARIO, :instalac AS INSTALAC FROM DUAL
-            ) src
+            USING (SELECT :usuario AS USUARIO, :instalac AS INSTALAC FROM DUAL) src
             ON (TRIM(tgt.USUARIO) = TRIM(src.USUARIO) AND TRIM(tgt.INSTALAC) = TRIM(src.INSTALAC))
             WHEN MATCHED THEN
                 UPDATE SET
@@ -306,16 +302,16 @@ class SatOracleRepo:
                 )
         """
         binds = {
-            "usuario":       usuario,
-            "instalac":      Config.SAT_DEFAULT_INSTALAC,
-            "codperfil":     role_code,
-            "codperfil_ext": Config.SAT_DEFAULT_CODPERFILEXT,
-            "activo":        1 if active else 0,
+            "usuario":        usuario,
+            "instalac":       Config.SAT_DEFAULT_INSTALAC,
+            "codperfil":      role_code,
+            "codperfil_ext":  Config.SAT_DEFAULT_CODPERFILEXT,
+            "activo":         1 if active else 0,
             "fecbaja_activa": Config.SAT_ACTIVE_FECBAJA,
-            "codentumo":     Config.SAT_DEFAULT_CODENTUMO,
-            "codofi":        Config.SAT_DEFAULT_CODOFIUMO,
-            "usuarioumo":    Config.SAT_DEFAULT_USUARIOUMO,
-            "codtermumo":    Config.SAT_DEFAULT_CODTERMUMO,
+            "codentumo":      Config.SAT_DEFAULT_CODENTUMO,
+            "codofi":         Config.SAT_DEFAULT_CODOFIUMO,
+            "usuarioumo":     Config.SAT_DEFAULT_USUARIOUMO,
+            "codtermumo":     Config.SAT_DEFAULT_CODTERMUMO,
         }
         self._log_sql(sql_merge, binds)
         cur.execute(sql_merge, binds)
@@ -392,7 +388,7 @@ class SatOracleRepo:
                        FECULTMOD = TO_CHAR(SYSDATE,'YYYY-MM-DD'),
                        USUARIOUMO = :usuarioumo,
                        CONTCUR = TO_CHAR(SYSDATE,'YYYY-MM-DD-HH24.MI.SS') || '.0' || TO_CHAR(SYSDATE,'SSSSS')
-                 WHERE USUARIO = :usuario
+                 WHERE TRIM(USUARIO) = TRIM(:usuario)
             """
             binds_947 = {"usuario": usuario, "usuarioumo": Config.SAT_DEFAULT_USUARIOUMO}
             self._log_sql(sql_947, binds_947)
@@ -403,7 +399,7 @@ class SatOracleRepo:
                    SET FECBAJA = TO_CHAR(SYSDATE,'YYYY-MM-DD'),
                        USUARIOUMO = :usuarioumo,
                        CONTCUR = TO_CHAR(SYSDATE,'YYYY-MM-DD-HH24.MI.SS') || '.0' || TO_CHAR(SYSDATE,'SSSSS')
-                 WHERE USUARIO = :usuario
+                 WHERE TRIM(USUARIO) = TRIM(:usuario)
                    AND INSTALAC = :instalac
             """
             binds_958 = {
