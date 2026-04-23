@@ -273,101 +273,52 @@ class SatOracleRepo:
             cur.execute(sql_baja, baja_binds)
 
     def _ensure_958(self, cur, *, usuario: str, role_code: str, active: bool) -> None:
-        sql_exists = f"""
-            SELECT COUNT(1) AS TOTAL
-            FROM {self.table_958}
-            WHERE USUARIO = :usuario
-              AND INSTALAC = :instalac
-        """
-        exists_sql_binds = {"usuario": usuario, "instalac": Config.SAT_DEFAULT_INSTALAC}
-        self._log_sql(sql_exists, exists_sql_binds)
-        cur.execute(sql_exists, exists_sql_binds)
-        total = int(cur.fetchone()[0])
-
-        if total == 0:
-            sql_insert = f"""
-                INSERT INTO {self.table_958} (
+        # Usar MERGE para evitar race conditions y problemas con CHAR padding en Oracle.
+        # PK de SGDT958 es (USUARIO + INSTALAC).
+        fecbaja = Config.SAT_ACTIVE_FECBAJA if active else "BAJA"
+        sql_merge = f"""
+            MERGE INTO {self.table_958} tgt
+            USING (
+                SELECT :usuario AS USUARIO, :instalac AS INSTALAC FROM DUAL
+            ) src
+            ON (TRIM(tgt.USUARIO) = TRIM(src.USUARIO) AND TRIM(tgt.INSTALAC) = TRIM(src.INSTALAC))
+            WHEN MATCHED THEN
+                UPDATE SET
+                    CODPERFIL    = :codperfil,
+                    CODPERFILEXT = :codperfil_ext,
+                    FECBAJA      = CASE WHEN :activo = 1
+                                        THEN :fecbaja_activa
+                                        ELSE TO_CHAR(SYSDATE,'YYYY-MM-DD') END,
+                    USUARIOUMO   = :usuarioumo,
+                    CONTCUR      = TO_CHAR(SYSDATE,'YYYY-MM-DD-HH24.MI.SS') || '.0' || TO_CHAR(SYSDATE,'SSSSS')
+            WHEN NOT MATCHED THEN
+                INSERT (
                     USUARIO, INSTALAC, CODPERFIL, CODPERFILEXT, FECALTA, FECBAJA,
                     CODENTUMO, CODOFIUMO, USUARIOUMO, CODTERMUMO, CONTCUR
                 ) VALUES (
-                    :usuario, :instalac, :codperfil, :codperfil_ext, TO_CHAR(SYSDATE,'YYYY-MM-DD'),
-                    :fecbaja, :codentumo, :codofi, :usuarioumo, :codtermumo,
+                    :usuario, :instalac, :codperfil, :codperfil_ext,
+                    TO_CHAR(SYSDATE,'YYYY-MM-DD'),
+                    CASE WHEN :activo = 1
+                         THEN :fecbaja_activa
+                         ELSE TO_CHAR(SYSDATE,'YYYY-MM-DD') END,
+                    :codentumo, :codofi, :usuarioumo, :codtermumo,
                     TO_CHAR(SYSDATE,'YYYY-MM-DD-HH24.MI.SS') || '.0' || TO_CHAR(SYSDATE,'SSSSS')
                 )
-            """
-            binds = {
-                "usuario": usuario,
-                "instalac": Config.SAT_DEFAULT_INSTALAC,
-                "codperfil": role_code,
-                "codperfil_ext": Config.SAT_DEFAULT_CODPERFILEXT,
-                "fecbaja": Config.SAT_ACTIVE_FECBAJA if active else None,
-                "codentumo": Config.SAT_DEFAULT_CODENTUMO,
-                "codofi": Config.SAT_DEFAULT_CODOFIUMO,
-                "usuarioumo": Config.SAT_DEFAULT_USUARIOUMO,
-                "codtermumo": Config.SAT_DEFAULT_CODTERMUMO,
-            }
-            self._log_sql(sql_insert, binds)
-            cur.execute(sql_insert, binds)
-
-            if not active:
-                sql_baja = f"""
-                    UPDATE {self.table_958}
-                       SET FECBAJA = TO_CHAR(SYSDATE,'YYYY-MM-DD'),
-                           USUARIOUMO = :usuarioumo,
-                           CONTCUR = TO_CHAR(SYSDATE,'YYYY-MM-DD-HH24.MI.SS') || '.0' || TO_CHAR(SYSDATE,'SSSSS')
-                     WHERE USUARIO = :usuario
-                       AND INSTALAC = :instalac
-                """
-                baja_binds = {"usuario": usuario, "instalac": Config.SAT_DEFAULT_INSTALAC, "usuarioumo": Config.SAT_DEFAULT_USUARIOUMO}
-                self._log_sql(sql_baja, baja_binds)
-                cur.execute(sql_baja, baja_binds)
-            return
-
-        sql_update = f"""
-            UPDATE {self.table_958}
-               SET CODPERFIL = :codperfil,
-                   CODPERFILEXT = :codperfil_ext,
-                   USUARIOUMO = :usuarioumo,
-                   CONTCUR = TO_CHAR(SYSDATE,'YYYY-MM-DD-HH24.MI.SS') || '.0' || TO_CHAR(SYSDATE,'SSSSS')
-             WHERE USUARIO = :usuario
-               AND INSTALAC = :instalac
         """
         binds = {
-            "usuario": usuario,
-            "instalac": Config.SAT_DEFAULT_INSTALAC,
-            "codperfil": role_code,
+            "usuario":       usuario,
+            "instalac":      Config.SAT_DEFAULT_INSTALAC,
+            "codperfil":     role_code,
             "codperfil_ext": Config.SAT_DEFAULT_CODPERFILEXT,
-            "usuarioumo": Config.SAT_DEFAULT_USUARIOUMO,
+            "activo":        1 if active else 0,
+            "fecbaja_activa": Config.SAT_ACTIVE_FECBAJA,
+            "codentumo":     Config.SAT_DEFAULT_CODENTUMO,
+            "codofi":        Config.SAT_DEFAULT_CODOFIUMO,
+            "usuarioumo":    Config.SAT_DEFAULT_USUARIOUMO,
+            "codtermumo":    Config.SAT_DEFAULT_CODTERMUMO,
         }
-        self._log_sql(sql_update, binds)
-        cur.execute(sql_update, binds)
-
-        if active:
-            sql_reactivate = f"""
-                UPDATE {self.table_958}
-                   SET FECBAJA = :fecbaja
-                 WHERE USUARIO = :usuario
-                   AND INSTALAC = :instalac
-            """
-            react_binds = {
-                "usuario": usuario,
-                "instalac": Config.SAT_DEFAULT_INSTALAC,
-                "fecbaja": Config.SAT_ACTIVE_FECBAJA,
-            }
-            self._log_sql(sql_reactivate, react_binds)
-            cur.execute(sql_reactivate, react_binds)
-        else:
-            sql_baja = f"""
-                UPDATE {self.table_958}
-                   SET FECBAJA = TO_CHAR(SYSDATE,'YYYY-MM-DD'),
-                       USUARIOUMO = :usuarioumo,
-                       CONTCUR = TO_CHAR(SYSDATE,'YYYY-MM-DD-HH24.MI.SS') || '.0' || TO_CHAR(SYSDATE,'SSSSS')
-                 WHERE USUARIO = :usuario
-                   AND INSTALAC = :instalac
-            """
-            baja_binds = {"usuario": usuario, "instalac": Config.SAT_DEFAULT_INSTALAC, "usuarioumo": Config.SAT_DEFAULT_USUARIOUMO}
-            self._log_sql(sql_baja, baja_binds)
-            cur.execute(sql_baja, baja_binds)
+        self._log_sql(sql_merge, binds)
+        cur.execute(sql_merge, binds)
 
     def upsert_user(self, data: Dict[str, Any]) -> Dict[str, Any]:
         custom = data.get("custom") or {}

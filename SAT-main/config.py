@@ -53,7 +53,7 @@ class Config:
     SAT_DEFAULT_CODIDIOMA = os.getenv("SAT_DEFAULT_CODIDIOMA", "ES")
     SAT_DEFAULT_VERPAN = os.getenv("SAT_DEFAULT_VERPAN", "N")
     SAT_DEFAULT_OFICINA = os.getenv("SAT_DEFAULT_OFICINA", "8888")
-    SAT_DEFAULT_CENTTRA = os.getenv("SAT_DEFAULT_CENTTRA", "")
+    SAT_DEFAULT_CENTTRA = os.getenv("SAT_DEFAULT_CENTTRA", "            ")  # CHAR(12): 12 espacios en blanco
     SAT_DEFAULT_ROLE_CODE_IF_UNMAPPED = os.getenv("SAT_DEFAULT_ROLE_CODE_IF_UNMAPPED", "04")
     SAT_USERNAME_STRATEGY = os.getenv("SAT_USERNAME_STRATEGY", "extensionAttribute1")
 
