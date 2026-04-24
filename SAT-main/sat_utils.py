@@ -88,12 +88,11 @@ def derive_sat_username(
 ) -> str:
     """
     Prioridad para derivar USUARIO en SAT (CHAR 8):
-    1. rut del custom schema -> RUT sin DV
-    2. userName con formato RUT+DV (ej: 20905343-8 o 209053438) -> extrae RUT sin DV
-    3. userName con @ y tipoUsuario casa matriz -> parte antes del @
-    4. userName con @ (sucursal/CC) -> parte antes del @
-    5. userName sin @ -> valor completo en mayúsculas
-    NUNCA usar externalId (es el ID interno de Okta, no el RUT).
+    1. rut del custom schema -> RUT sin DV (con validación de DV)
+    2. userName con formato RUT+DV (ej: 20905343-8 o 209053438) -> valida DV y extrae RUT
+    3. userName con @ -> parte antes del @
+    4. userName sin @ -> valor completo en mayúsculas
+    NUNCA usar externalId (es el ID interno de Okta).
     """
     tipo = normalize_title(tipo_usuario)
 
@@ -102,23 +101,29 @@ def derive_sat_username(
         rut, _ = validate_rut_dv(rut_value)
         return rut
 
-    # Prioridad 2: userName con formato RUT chileno (con o sin guion)
-    # Ej: "20905343-8" -> "20905343" | "209053438" -> "20905343"
     user_name_clean = str(user_name or "").strip()
-    if user_name_clean:
-        # Formato RUT+DV con guion: 20905343-8
-        if re.match(r"^\d{6,8}-[\dkK]$", user_name_clean):
-            return user_name_clean.split("-")[0]
-        # Formato RUT+DV sin guion: 209053438 (8-9 dígitos)
-        if re.match(r"^\d{7,9}$", user_name_clean):
-            return user_name_clean[:-1]  # quitar el DV (último dígito)
-        # Usuario casa matriz: login antes del @
-        if "@" in user_name_clean and ("matriz" in tipo or "casa matriz" in tipo):
-            return user_name_clean.split("@", 1)[0].upper()
-        # Usuario sucursal/CC con email como userName
-        if "@" in user_name_clean:
-            return user_name_clean.split("@", 1)[0].upper()
-        # Sin @ y no es RUT: valor completo
-        return user_name_clean.upper()
+    if not user_name_clean:
+        raise ValueError("No fue posible derivar USUARIO para SAT. Debes enviar userName o rut.")
 
-    raise ValueError("No fue posible derivar USUARIO para SAT. Debes enviar userName o rut.")
+    # Prioridad 2a: formato RUT-DV con guion (ej: 20905343-8) -> validar DV
+    if re.match(r"^\d{6,8}-[\dkK]$", user_name_clean):
+        try:
+            rut, _ = validate_rut_dv(user_name_clean)
+        except ValueError as exc:
+            raise ValueError(f"El userName '{user_name_clean}' tiene un DV inválido: {exc}") from exc
+        return rut
+
+    # Prioridad 2b: formato RUT sin guion (7-9 dígitos, ej: 209053438) -> validar DV
+    if re.match(r"^\d{7,9}$", user_name_clean):
+        try:
+            rut, _ = validate_rut_dv(user_name_clean)
+        except ValueError as exc:
+            raise ValueError(f"El userName '{user_name_clean}' tiene un DV inválido: {exc}") from exc
+        return rut
+
+    # Prioridad 3: email como userName -> parte antes del @
+    if "@" in user_name_clean:
+        return user_name_clean.split("@", 1)[0].upper()
+
+    # Prioridad 4: valor completo
+    return user_name_clean.upper()
