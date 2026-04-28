@@ -101,15 +101,15 @@ class SatOracleRepo:
             "id": str(row_947["USUARIO"]),
             "externalId": str(row_947.get("USUARIO")),
             "userName": str(row_947.get("USUARIO")),
-            "firstName": row_947.get("NOMBREUSU"),
-            "lastName": row_947.get("APELL1USU") or "",
+            "firstName": str(row_947.get("NOMBREUSU") or "").strip(),
+            "lastName": str(row_947.get("APELL1USU") or "").strip(),
             "title": role_info["name"],
             "active": active,
             "custom": {
                 "rut": rut or None,
                 "dv": dv or None,
                 "tipoUsuario": row_947.get("TIPOUSUARIO") if "TIPOUSUARIO" in row_947 else None,
-                "apellidoMaterno": row_947.get("APELL2USU") or "",
+                "apellidoMaterno": str(row_947.get("APELL2USU") or "").strip(),
                 "codigoPerfil": role_code,
                 "perfilNombre": role_info["name"],
                 "userstatus": "activo" if active else "inactivo",
@@ -222,7 +222,7 @@ class SatOracleRepo:
             "nivsegusu": Config.SAT_DEFAULT_NIVSEGUSU,
             "codidioma": Config.SAT_DEFAULT_CODIDIOMA,
             "fecbaja_activa": Config.SAT_ACTIVE_FECBAJA,
-            "centtra": "            ",  # CHAR(12) NOT NULL: 12 espacios
+            "centtra": Config.SAT_DEFAULT_CENTTRA or "            ",  # CHAR(12) NOT NULL: 12 espacios
             "oficina": Config.SAT_DEFAULT_OFICINA,
             "verpan": Config.SAT_DEFAULT_VERPAN,
             "codentumo": Config.SAT_DEFAULT_CODENTUMO,
@@ -336,9 +336,14 @@ class SatOracleRepo:
             tipo_usuario=custom.get("tipoUsuario"),
         )
         first_name = normalize_upper(data.get("firstName"))
+        # lastName siempre va a APELL1USU - nunca mezclar con APELL2USU
+        # Si lastName viene con padding de CHAR Oracle, strip() lo limpia
         apellido1 = normalize_upper(data.get("lastName"))
+        # apellidoMaterno del custom schema va directo a APELL2USU
         apellido2 = normalize_upper(custom.get("apellidoMaterno"))
 
+        # Solo hacer split de lastName si NO viene apellidoMaterno del custom schema
+        # y lastName contiene espacio (ej: "VALENZUELA GARRIDO")
         if not apellido2 and apellido1 and " " in apellido1:
             apellido1, apellido2 = split_last_names(apellido1)
 
@@ -355,12 +360,70 @@ class SatOracleRepo:
             usuario, first_name, apellido1, apellido2, active, role_info["code"], data.get("title")
         )
 
-        existing = self.get_user(usuario)
         with self._connect() as conn, conn.cursor() as cur:
-            if existing:
-                self._update_947(cur, usuario=usuario, first_name=first_name, apellido1=apellido1, apellido2=apellido2, active=active)
-            else:
-                self._insert_947(cur, usuario=usuario, first_name=first_name, apellido1=apellido1, apellido2=apellido2)
+            # MERGE en SGDT947 — evita ORA-00001 por CHAR padding en PK
+            sql_merge_947 = f"""
+                MERGE INTO {self.table_947} tgt
+                USING (SELECT :usuario AS USUARIO FROM DUAL) src
+                ON (TRIM(tgt.USUARIO) = TRIM(src.USUARIO))
+                WHEN MATCHED THEN
+                    UPDATE SET
+                        NOMBREUSU  = :nombre,
+                        APELL1USU  = :apellido1,
+                        APELL2USU  = :apellido2,
+                        FECULTMOD  = TO_CHAR(SYSDATE,'YYYY-MM-DD'),
+                        FECBAJA    = CASE WHEN :activo = 1
+                                          THEN :fecbaja_activa
+                                          ELSE TO_CHAR(SYSDATE,'YYYY-MM-DD') END,
+                        USUARIOUMO = :usuarioumo,
+                        CODTERMUMO = :codtermumo,
+                        CONTCUR    = TO_CHAR(SYSDATE,'YYYY-MM-DD-HH24.MI.SS') || '.0' || TO_CHAR(SYSDATE,'SSSSS')
+                WHEN NOT MATCHED THEN
+                    INSERT (
+                        USUARIO, CODPERFIL, NOMBREUSU, APELL1USU, APELL2USU,
+                        PASSWORDD, FECINICON, FECFINCON, INDCONADM, CONTADOR,
+                        NUMMAXCON, VIGCONUSU, NIVSEGUSU, CODIDIOMA,
+                        FECACTIVA, FECDESACT, FECALTA, FECBAJA, FECULTMOD,
+                        CENTTRA, OFICINA, VERPAN,
+                        CODENTUMO, CODOFIUMO, USUARIOUMO, CODTERMUMO, CONTCUR
+                    ) VALUES (
+                        :usuario, '  ', :nombre, :apellido1, :apellido2,
+                        :passwordd, TO_CHAR(SYSDATE,'YYYY-MM-DD'), :fecfincon, 'N', 0,
+                        :nummaxcon, :vigconusu, :nivsegusu, :codidioma,
+                        TO_CHAR(SYSDATE,'YYYY-MM-DD'), :fecfincon,
+                        TO_CHAR(SYSDATE,'YYYY-MM-DD'),
+                        CASE WHEN :activo = 1
+                             THEN :fecbaja_activa
+                             ELSE TO_CHAR(SYSDATE,'YYYY-MM-DD') END,
+                        TO_CHAR(SYSDATE,'YYYY-MM-DD'),
+                        :centtra, :oficina, :verpan,
+                        :codentumo, :codofi, :usuarioumo, :codtermumo,
+                        TO_CHAR(SYSDATE,'YYYY-MM-DD-HH24.MI.SS') || '.0' || TO_CHAR(SYSDATE,'SSSSS')
+                    )
+            """
+            binds_947 = {
+                "usuario":       usuario,
+                "nombre":        first_name,
+                "apellido1":     apellido1,
+                "apellido2":     apellido2,
+                "activo":        1 if active else 0,
+                "fecbaja_activa": Config.SAT_ACTIVE_FECBAJA,
+                "passwordd":     Config.SAT_DEFAULT_PASSWORD_HASH,
+                "fecfincon":     Config.SAT_DEFAULT_FECFINCON,
+                "nummaxcon":     Config.SAT_DEFAULT_NUMMAXCON,
+                "vigconusu":     Config.SAT_DEFAULT_VIGCONUSU,
+                "nivsegusu":     Config.SAT_DEFAULT_NIVSEGUSU,
+                "codidioma":     Config.SAT_DEFAULT_CODIDIOMA,
+                "centtra":       Config.SAT_DEFAULT_CENTTRA or "            ",
+                "oficina":       Config.SAT_DEFAULT_OFICINA,
+                "verpan":        Config.SAT_DEFAULT_VERPAN,
+                "codentumo":     Config.SAT_DEFAULT_CODENTUMO,
+                "codofi":        Config.SAT_DEFAULT_CODOFIUMO,
+                "usuarioumo":    Config.SAT_DEFAULT_USUARIOUMO,
+                "codtermumo":    Config.SAT_DEFAULT_CODTERMUMO,
+            }
+            self._log_sql(sql_merge_947, binds_947)
+            cur.execute(sql_merge_947, binds_947)
 
             self._ensure_958(cur, usuario=usuario, role_code=role_info["code"], active=active)
             conn.commit()

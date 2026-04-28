@@ -104,6 +104,8 @@ def _derive_names(payload: Dict[str, Any]) -> tuple:
     formatted = str(name.get("formatted") or "").strip()
     given   = str(name.get("givenName")  or payload.get("firstName") or "").strip()
     family  = str(name.get("familyName") or payload.get("lastName")  or "").strip()
+    # Strip adicional para limpiar padding CHAR de Oracle que puede venir en familyName
+    family  = family.strip()
 
     # Si formatted tiene valor y difiere de la combinación givenName+familyName
     # usamos formatted como fuente de verdad
@@ -111,7 +113,7 @@ def _derive_names(payload: Dict[str, Any]) -> tuple:
         combined = f"{given} {family}".strip()
         if formatted != combined:
             # Usar familyName para lastName y derivar firstName desde formatted
-            if family and formatted.endswith(family):
+            if family and formatted.upper().endswith(family.upper()):
                 first = formatted[:-len(family)].strip()
                 return first.upper(), family.upper()
             # Sin familyName: split simple
