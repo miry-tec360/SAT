@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import annotations
 
 import time
@@ -94,30 +95,32 @@ def _extract_primary_role(payload: Dict[str, Any]) -> str:
 
 
 def _derive_names(payload: Dict[str, Any]) -> tuple:
+    """
+    Deriva firstName y lastName priorizando name.formatted sobre givenName/familyName.
+    Esto resuelve el caso donde Okta envia el nombre actualizado en formatted
+    pero givenName/familyName aun tienen el valor cacheado anterior.
+    """
     name = payload.get("name") or {}
+    formatted = str(name.get("formatted") or "").strip()
+    given   = str(name.get("givenName")  or payload.get("firstName") or "").strip()
+    family  = str(name.get("familyName") or payload.get("lastName")  or "").strip()
 
-    first = str(name.get("givenName") or payload.get("firstName") or "").strip()
-    last  = str(name.get("familyName") or payload.get("lastName") or "").strip()
-
-    
-    if not first or not last:
-        formatted = str(name.get("formatted") or "").strip()
-        if formatted:
+    # Si formatted tiene valor y difiere de la combinación givenName+familyName
+    # usamos formatted como fuente de verdad
+    if formatted:
+        combined = f"{given} {family}".strip()
+        if formatted != combined:
+            # Usar familyName para lastName y derivar firstName desde formatted
+            if family and formatted.endswith(family):
+                first = formatted[:-len(family)].strip()
+                return first.upper(), family.upper()
+            # Sin familyName: split simple
             parts = formatted.split(" ", 1)
-            if not first:
-                first = parts[0]
-            if not last and len(parts) > 1:
-                last = parts[1]
+            return parts[0].upper(), (parts[1].upper() if len(parts) > 1 else parts[0].upper())
 
-    
-    if not first:
-        username = str(payload.get("userName") or "").strip()
-        if username:
-            first = username.split("@")[0].upper()
-
-    
-    if not last:
-        last = first
+    # formatted igual a givenName+familyName ? usar givenName/familyName directamente
+    first = given or (formatted.split(" ", 1)[0] if formatted else "")
+    last  = family or (formatted.split(" ", 1)[1] if formatted and " " in formatted else first)
 
     return first.upper(), last.upper()
 
@@ -332,16 +335,43 @@ def get_user(user_id: str):
     return jsonify(user_to_scim(user, Config.BASE_URL))
 
 
+def _nombre_completo(data: Dict[str, Any]) -> str:
+    first = str(data.get("firstName") or "").strip()
+    last  = str(data.get("lastName")  or "").strip()
+    return f"{first} {last}".strip() or "SIN NOMBRE"
+
+
+def _rol_display(data: Dict[str, Any]) -> str:
+    custom = data.get("custom") or {}
+    codigo = custom.get("codigoPerfil") or ""
+    nombre = custom.get("perfilNombre") or Config.SAT_ROLES.get(codigo, {}).get("name", "") if codigo else ""
+    return f"{codigo} - {nombre}" if nombre else codigo or "SIN ROL"
+
+
+def _estado_display(data: Dict[str, Any]) -> str:
+    return "ACTIVO" if data.get("active", True) else "INACTIVO"
+
+
 @app.post("/scim/v2/Users")
 def create_user():
     payload = request.get_json(force=True, silent=False) or {}
     data = _extract_payload(payload)
     try:
         user = repo.upsert_user(data)
+        nombre = _nombre_completo(data)
+        usuario = data.get("userName") or ""
+        rol = _rol_display(data)
+        LOGGER.info("[ALTA] Usuario %s - %s creado exitosamente | Rol: %s | Estado: ACTIVO", usuario, nombre, rol)
         return jsonify(user_to_scim(user, Config.BASE_URL)), 201
     except ValueError as exc:
+        nombre = _nombre_completo(data)
+        usuario = data.get("userName") or ""
+        LOGGER.warning("[ERROR ALTA] No se pudo crear el usuario %s - %s | Detalle: %s", usuario, nombre, str(exc))
         return _error(str(exc), 400)
     except Exception as exc:
+        nombre = _nombre_completo(data)
+        usuario = data.get("userName") or ""
+        LOGGER.error("[ERROR ALTA] Error inesperado al crear el usuario %s - %s | Detalle: %s", usuario, nombre, str(exc))
         LOGGER.exception("USER_CREATE_ERROR")
         return _error(str(exc), 500)
 
@@ -353,10 +383,21 @@ def replace_user(user_id: str):
     data["userName"] = data.get("userName") or user_id
     try:
         user = repo.upsert_user(data)
+        nombre = _nombre_completo(data)
+        usuario = data.get("userName") or user_id
+        rol = _rol_display(data)
+        estado = _estado_display(data)
+        LOGGER.info("[ACTUALIZACION] Usuario %s - %s actualizado exitosamente | Rol: %s | Estado: %s", usuario, nombre, rol, estado)
         return jsonify(user_to_scim(user, Config.BASE_URL))
     except ValueError as exc:
+        nombre = _nombre_completo(data)
+        usuario = data.get("userName") or user_id
+        LOGGER.warning("[ERROR ACTUALIZACION] No se pudo actualizar el usuario %s - %s | Detalle: %s", usuario, nombre, str(exc))
         return _error(str(exc), 400)
     except Exception as exc:
+        nombre = _nombre_completo(data)
+        usuario = data.get("userName") or user_id
+        LOGGER.error("[ERROR ACTUALIZACION] Error inesperado al actualizar el usuario %s - %s | Detalle: %s", usuario, nombre, str(exc))
         LOGGER.exception("USER_REPLACE_ERROR")
         return _error(str(exc), 500)
 
@@ -365,6 +406,7 @@ def replace_user(user_id: str):
 def patch_user(user_id: str):
     existing = repo.get_user(user_id)
     if not existing:
+        LOGGER.warning("[ERROR ACTUALIZACION] Usuario %s no encontrado en SAT", user_id)
         return _error("User not found", 404)
 
     current = {
@@ -381,12 +423,19 @@ def patch_user(user_id: str):
     try:
         patched = apply_patch(current, payload.get("Operations") or [], Config.CUSTOM_SCHEMA)
         user = repo.upsert_user(patched)
+        nombre = _nombre_completo(patched)
+        rol = _rol_display(patched)
+        estado = _estado_display(patched)
+        LOGGER.info("[ACTUALIZACION] Usuario %s - %s actualizado exitosamente | Rol: %s | Estado: %s", user_id, nombre, rol, estado)
         return jsonify(user_to_scim(user, Config.BASE_URL))
     except PatchError as exc:
+        LOGGER.warning("[ERROR ACTUALIZACION] Operacion PATCH invalida para usuario %s | Detalle: %s", user_id, str(exc))
         return scim_error(str(exc), 400, exc.scim_type)
     except ValueError as exc:
+        LOGGER.warning("[ERROR ACTUALIZACION] No se pudo actualizar el usuario %s | Detalle: %s", user_id, str(exc))
         return _error(str(exc), 400)
     except Exception as exc:
+        LOGGER.error("[ERROR ACTUALIZACION] Error inesperado al actualizar el usuario %s | Detalle: %s", user_id, str(exc))
         LOGGER.exception("USER_PATCH_ERROR")
         return _error(str(exc), 500)
 
@@ -394,9 +443,13 @@ def patch_user(user_id: str):
 @app.delete("/scim/v2/Users/<user_id>")
 def delete_user(user_id: str):
     try:
+        existing = repo.get_user(user_id)
+        nombre = _nombre_completo(existing) if existing else "SIN NOMBRE"
         repo.deactivate_user(user_id)
+        LOGGER.info("[BAJA] Usuario %s - %s dado de baja exitosamente | Estado: INACTIVO", user_id, nombre)
         return "", 204
     except Exception as exc:
+        LOGGER.error("[ERROR BAJA] No se pudo dar de baja al usuario %s | Detalle: %s", user_id, str(exc))
         LOGGER.exception("USER_DELETE_ERROR")
         return _error(str(exc), 500)
 
