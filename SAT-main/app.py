@@ -346,7 +346,7 @@ def _nombre_completo(data: Dict[str, Any]) -> str:
 def _rol_display(data: Dict[str, Any]) -> str:
     custom = data.get("custom") or {}
     codigo = custom.get("codigoPerfil") or ""
-    nombre = custom.get("perfilNombre") or Config.SAT_ROLES.get(codigo, {}).get("name", "") if codigo else ""
+    nombre = custom.get("perfilNombre") or (Config.SAT_ROLES.get(codigo, {}).get("name", "") if codigo else "")
     return f"{codigo} - {nombre}" if nombre else codigo or "SIN ROL"
 
 
@@ -354,26 +354,103 @@ def _estado_display(data: Dict[str, Any]) -> str:
     return "ACTIVO" if data.get("active", True) else "INACTIVO"
 
 
+def _log_exito_alta(data: Dict[str, Any]) -> None:
+    custom  = data.get("custom") or {}
+    usuario = str(data.get("userName") or "").strip()
+    nombre  = _nombre_completo(data)
+    apell1  = str(data.get("lastName")  or "").strip()
+    apell2  = str(custom.get("apellidoMaterno") or "").strip()
+    rol     = _rol_display(data)
+    estado  = _estado_display(data)
+    from datetime import datetime
+    fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    msg = (
+        "\n========================================"
+        "\nALTA DE USUARIO - EXITOSO"
+        "\n========================================"
+        "\nUsuario    : " + usuario +
+        "\nNombre     : " + nombre +
+        "\nApellido 1 : " + apell1 +
+        "\nApellido 2 : " + apell2 +
+        "\nRol        : " + rol +
+        "\nEstado     : " + estado +
+        "\nFecha      : " + fecha +
+        "\n========================================"
+    )
+    LOGGER.info(msg)
+
+
+def _log_exito_actualizacion(data: Dict[str, Any], usuario_id: str) -> None:
+    custom  = data.get("custom") or {}
+    nombre  = _nombre_completo(data)
+    apell1  = str(data.get("lastName")  or "").strip()
+    apell2  = str(custom.get("apellidoMaterno") or "").strip()
+    rol     = _rol_display(data)
+    estado  = _estado_display(data)
+    from datetime import datetime
+    fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    msg = (
+        "\n========================================"
+        "\nACTUALIZACION DE USUARIO - EXITOSO"
+        "\n========================================"
+        "\nUsuario    : " + usuario_id +
+        "\nNombre     : " + nombre +
+        "\nApellido 1 : " + apell1 +
+        "\nApellido 2 : " + apell2 +
+        "\nRol        : " + rol +
+        "\nEstado     : " + estado +
+        "\nFecha      : " + fecha +
+        "\n========================================"
+    )
+    LOGGER.info(msg)
+
+
+def _log_exito_baja(usuario_id: str, nombre: str) -> None:
+    from datetime import datetime
+    fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    msg = (
+        "\n========================================"
+        "\nBAJA DE USUARIO - EXITOSO"
+        "\n========================================"
+        "\nUsuario    : " + usuario_id +
+        "\nNombre     : " + nombre +
+        "\nEstado     : INACTIVO"
+        "\nFecha      : " + fecha +
+        "\n========================================"
+    )
+    LOGGER.info(msg)
+
+
+def _log_error(operacion: str, usuario_id: str, motivo: str, accion: str) -> None:
+    from datetime import datetime
+    fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    msg = (
+        "\n========================================"
+        "\nERROR - " + operacion + " FALLIDO"
+        "\n========================================"
+        "\nUsuario    : " + usuario_id +
+        "\nMotivo     : " + motivo +
+        "\nAccion     : " + accion +
+        "\nFecha      : " + fecha +
+        "\n========================================"
+    )
+    LOGGER.error(msg)
+
+
 @app.post("/scim/v2/Users")
 def create_user():
     payload = request.get_json(force=True, silent=False) or {}
     data = _extract_payload(payload)
+    usuario = data.get("userName") or ""
     try:
         user = repo.upsert_user(data)
-        nombre = _nombre_completo(data)
-        usuario = data.get("userName") or ""
-        rol = _rol_display(data)
-        LOGGER.info("[ALTA] Usuario %s - %s creado exitosamente | Rol: %s | Estado: ACTIVO", usuario, nombre, rol)
+        _log_exito_alta(data)
         return jsonify(user_to_scim(user, Config.BASE_URL)), 201
     except ValueError as exc:
-        nombre = _nombre_completo(data)
-        usuario = data.get("userName") or ""
-        LOGGER.warning("[ERROR ALTA] No se pudo crear el usuario %s - %s | Detalle: %s", usuario, nombre, str(exc))
+        _log_error("ALTA", usuario, str(exc), "Verificar los datos del usuario en Okta antes de reasignar")
         return _error(str(exc), 400)
     except Exception as exc:
-        nombre = _nombre_completo(data)
-        usuario = data.get("userName") or ""
-        LOGGER.error("[ERROR ALTA] Error inesperado al crear el usuario %s - %s | Detalle: %s", usuario, nombre, str(exc))
+        _log_error("ALTA", usuario, f"Error inesperado: {str(exc)}", "Revisar logs tecnicos y contactar al administrador")
         LOGGER.exception("USER_CREATE_ERROR")
         return _error(str(exc), 500)
 
@@ -385,21 +462,13 @@ def replace_user(user_id: str):
     data["userName"] = data.get("userName") or user_id
     try:
         user = repo.upsert_user(data)
-        nombre = _nombre_completo(data)
-        usuario = data.get("userName") or user_id
-        rol = _rol_display(data)
-        estado = _estado_display(data)
-        LOGGER.info("[ACTUALIZACION] Usuario %s - %s actualizado exitosamente | Rol: %s | Estado: %s", usuario, nombre, rol, estado)
+        _log_exito_actualizacion(data, user_id)
         return jsonify(user_to_scim(user, Config.BASE_URL))
     except ValueError as exc:
-        nombre = _nombre_completo(data)
-        usuario = data.get("userName") or user_id
-        LOGGER.warning("[ERROR ACTUALIZACION] No se pudo actualizar el usuario %s - %s | Detalle: %s", usuario, nombre, str(exc))
+        _log_error("ACTUALIZACION", user_id, str(exc), "Verificar los datos del usuario en Okta y reintentar")
         return _error(str(exc), 400)
     except Exception as exc:
-        nombre = _nombre_completo(data)
-        usuario = data.get("userName") or user_id
-        LOGGER.error("[ERROR ACTUALIZACION] Error inesperado al actualizar el usuario %s - %s | Detalle: %s", usuario, nombre, str(exc))
+        _log_error("ACTUALIZACION", user_id, f"Error inesperado: {str(exc)}", "Revisar logs tecnicos y contactar al administrador")
         LOGGER.exception("USER_REPLACE_ERROR")
         return _error(str(exc), 500)
 
@@ -408,7 +477,7 @@ def replace_user(user_id: str):
 def patch_user(user_id: str):
     existing = repo.get_user(user_id)
     if not existing:
-        LOGGER.warning("[ERROR ACTUALIZACION] Usuario %s no encontrado en SAT", user_id)
+        _log_error("ACTUALIZACION", user_id, "Usuario no encontrado en SAT", "Verificar que el usuario exista en la BD antes de actualizar")
         return _error("User not found", 404)
 
     current = {
@@ -425,19 +494,16 @@ def patch_user(user_id: str):
     try:
         patched = apply_patch(current, payload.get("Operations") or [], Config.CUSTOM_SCHEMA)
         user = repo.upsert_user(patched)
-        nombre = _nombre_completo(patched)
-        rol = _rol_display(patched)
-        estado = _estado_display(patched)
-        LOGGER.info("[ACTUALIZACION] Usuario %s - %s actualizado exitosamente | Rol: %s | Estado: %s", user_id, nombre, rol, estado)
+        _log_exito_actualizacion(patched, user_id)
         return jsonify(user_to_scim(user, Config.BASE_URL))
     except PatchError as exc:
-        LOGGER.warning("[ERROR ACTUALIZACION] Operacion PATCH invalida para usuario %s | Detalle: %s", user_id, str(exc))
+        _log_error("ACTUALIZACION", user_id, f"Operacion PATCH invalida: {str(exc)}", "Verificar el formato de la operacion enviada por Okta")
         return scim_error(str(exc), 400, exc.scim_type)
     except ValueError as exc:
-        LOGGER.warning("[ERROR ACTUALIZACION] No se pudo actualizar el usuario %s | Detalle: %s", user_id, str(exc))
+        _log_error("ACTUALIZACION", user_id, str(exc), "Verificar los datos del usuario en Okta y reintentar")
         return _error(str(exc), 400)
     except Exception as exc:
-        LOGGER.error("[ERROR ACTUALIZACION] Error inesperado al actualizar el usuario %s | Detalle: %s", user_id, str(exc))
+        _log_error("ACTUALIZACION", user_id, f"Error inesperado: {str(exc)}", "Revisar logs tecnicos y contactar al administrador")
         LOGGER.exception("USER_PATCH_ERROR")
         return _error(str(exc), 500)
 
@@ -448,10 +514,10 @@ def delete_user(user_id: str):
         existing = repo.get_user(user_id)
         nombre = _nombre_completo(existing) if existing else "SIN NOMBRE"
         repo.deactivate_user(user_id)
-        LOGGER.info("[BAJA] Usuario %s - %s dado de baja exitosamente | Estado: INACTIVO", user_id, nombre)
+        _log_exito_baja(user_id, nombre)
         return "", 204
     except Exception as exc:
-        LOGGER.error("[ERROR BAJA] No se pudo dar de baja al usuario %s | Detalle: %s", user_id, str(exc))
+        _log_error("BAJA", user_id, f"Error inesperado: {str(exc)}", "Revisar logs tecnicos y contactar al administrador")
         LOGGER.exception("USER_DELETE_ERROR")
         return _error(str(exc), 500)
 
