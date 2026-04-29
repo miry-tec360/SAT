@@ -354,12 +354,22 @@ def _estado_display(data: Dict[str, Any]) -> str:
     return "ACTIVO" if data.get("active", True) else "INACTIVO"
 
 
+def _split_apellidos(data: Dict[str, Any]):
+    """Deriva apell1 y apell2 igual que db_sat.py para mostrar en logs."""
+    custom = data.get("custom") or {}
+    apell1 = str(data.get("lastName") or "").strip()
+    apell2 = str(custom.get("apellidoMaterno") or "").strip()
+    if not apell2 and apell1 and " " in apell1:
+        partes = apell1.split(" ", 1)
+        apell1 = partes[0].strip()
+        apell2 = partes[1].strip()
+    return apell1, apell2
+
+
 def _log_exito_alta(data: Dict[str, Any]) -> None:
-    custom  = data.get("custom") or {}
     usuario = str(data.get("userName") or "").strip()
     nombre  = _nombre_completo(data)
-    apell1  = str(data.get("lastName")  or "").strip()
-    apell2  = str(custom.get("apellidoMaterno") or "").strip()
+    apell1, apell2 = _split_apellidos(data)
     rol     = _rol_display(data)
     estado  = _estado_display(data)
     from datetime import datetime
@@ -381,10 +391,8 @@ def _log_exito_alta(data: Dict[str, Any]) -> None:
 
 
 def _log_exito_actualizacion(data: Dict[str, Any], usuario_id: str) -> None:
-    custom  = data.get("custom") or {}
     nombre  = _nombre_completo(data)
-    apell1  = str(data.get("lastName")  or "").strip()
-    apell2  = str(custom.get("apellidoMaterno") or "").strip()
+    apell1, apell2 = _split_apellidos(data)
     rol     = _rol_display(data)
     estado  = _estado_display(data)
     from datetime import datetime
